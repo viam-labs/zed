@@ -35,3 +35,22 @@ jobs:
         run: |
           test -f module.tar.gz
           tar tzf module.tar.gz | sort
+
+  lint:
+    runs-on: ubuntu-22.04
+    steps:
+      # actions/checkout@v6.0.2
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - name: Install clang-format-19
+        run: |
+          wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/llvm.asc >/dev/null
+          echo "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-19 main" | sudo tee /etc/apt/sources.list.d/llvm.list
+          sudo apt-get update
+          sudo apt-get install -y clang-format-19
+
+      - name: Run linter
+        run: ./bin/lint.sh
+
+      - name: Verify no formatting drift
+        run: git diff --exit-code
