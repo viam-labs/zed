@@ -1,0 +1,31 @@
+{
+  "module_id": "viam:zed",
+  "visibility": "public",
+  "url": "https://github.com/viam-labs/zed",
+  "description": "C++ camera module for Stereolabs ZED cameras",
+  "models": [
+    {
+      "api": "rdk:component:camera",
+      "model": "viam:camera:zed",
+      "markdown_link": "README.md#configure-your-zed-camera",
+      "short_description": "Stereolabs ZED driver: RGB, depth, and pointclouds"
+    },
+    {
+      "api": "rdk:service:discovery",
+      "model": "viam:zed:discovery",
+      "markdown_link": "README.md#configure-with-discovery-service",
+      "short_description": "Discovery service for connected Stereolabs ZED cameras"
+    }
+  ],
+  "build": {
+    "setup": "make setup",
+    "build": "make module.tar.gz",
+    "path": "module.tar.gz",
+    "arch": [
+      "linux/arm64"
+    ],
+    "distro": "bookworm"
+  },
+  "entrypoint": "viam-camera-zed",
+  "first_run": "./first_run.sh"
+}
