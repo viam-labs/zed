@@ -12,9 +12,8 @@ namespace vsdk = ::viam::sdk;
 int serve(int argc, char** argv) try {
     vsdk::Instance inst;
 
-    VIAM_SDK_LOG(info) << "[serve] Starting ZED module (skeleton, no models registered)";
+    VIAM_SDK_LOG(info) << "[serve] Starting ZED module";
 
-    // Empty registrations. Camera + discovery land in follow-up PRs.
     std::vector<std::shared_ptr<vsdk::ModelRegistration>> registrations;
 
     auto module_service =
