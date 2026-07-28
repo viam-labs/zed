@@ -1,0 +1,14 @@
+module.tar.gz
+viam-camera-zed
+build
+build-conan
+build-native
+venv
+.venv
+.vscode
+.cache
+.DS_Store
+compile_commands.json
+CMakeUserPresets.json
+*.AppImage*
+.VIAM_RELOAD_ARCHIVE.tar.gz
