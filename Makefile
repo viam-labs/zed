@@ -6,14 +6,12 @@ UNAME_M := $(shell uname -m)
 
 ifeq ($(UNAME_S),Linux)
     export DEFAULT_PKG_CONFIG_PATH := /usr/lib/$(UNAME_M)-linux-gnu/pkgconfig:/usr/share/pkgconfig
-    NPROC := $(shell nproc)
 else ifeq ($(UNAME_S),Darwin)
     ifeq ($(UNAME_M),arm64)
         export DEFAULT_PKG_CONFIG_PATH := /opt/homebrew/lib/pkgconfig:/usr/local/lib/pkgconfig
     else
         export DEFAULT_PKG_CONFIG_PATH := /usr/local/lib/pkgconfig
     endif
-    NPROC := $(shell sysctl -n hw.ncpu)
 endif
 
 ifeq ($(PKG_CONFIG_PATH),)
