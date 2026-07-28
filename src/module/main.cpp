@@ -3,7 +3,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-
 #include <viam/sdk/common/instance.hpp>
 #include <viam/sdk/module/service.hpp>
 
@@ -16,8 +15,7 @@ int serve(int argc, char** argv) try {
 
   std::vector<std::shared_ptr<vsdk::ModelRegistration>> registrations;
 
-  auto module_service =
-      std::make_shared<vsdk::ModuleService>(argc, argv, std::move(registrations));
+  auto module_service = std::make_shared<vsdk::ModuleService>(argc, argv, std::move(registrations));
   module_service->serve();
 
   return EXIT_SUCCESS;
