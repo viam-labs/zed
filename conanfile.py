@@ -31,7 +31,7 @@ class ViamZed(ConanFile):
         check_min_cppstd(self, 17)
 
     def requirements(self):
-        self.requires("viam-cpp-sdk/0.38.1")
+        self.requires("viam-cpp-sdk/0.39.0")
         # Pin transitive deps to versions with prebuilt binaries (avoid slow source builds).
         self.requires("grpc/1.72.0", override=True)
         self.requires("protobuf/5.27.0", override=True)
