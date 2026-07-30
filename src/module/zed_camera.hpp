@@ -20,7 +20,8 @@ class Zed2i final : public viam::sdk::Camera {
                                                  const viam::sdk::ProtoStruct& extra) override;
   viam::sdk::Camera::properties get_properties() override;
   viam::sdk::ProtoStruct get_status() override;
-  std::vector<viam::sdk::GeometryConfig> get_geometries(const viam::sdk::ProtoStruct& extra) override;
+  std::vector<viam::sdk::GeometryConfig> get_geometries(
+      const viam::sdk::ProtoStruct& extra) override;
   viam::sdk::ProtoStruct do_command(const viam::sdk::ProtoStruct& command) override;
 };
 
