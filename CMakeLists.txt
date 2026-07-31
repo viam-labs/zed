@@ -17,7 +17,10 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 find_package(viam-cpp-sdk REQUIRED)
 
-add_executable(viam-camera-zed src/module/main.cpp)
+add_executable(viam-camera-zed
+    src/module/main.cpp
+    src/module/zed_camera.cpp
+)
 target_compile_features(viam-camera-zed PRIVATE cxx_std_17)
 target_link_libraries(viam-camera-zed
     PRIVATE
