@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: read
+  packages: read
 
 env:
   MODULE_VERSION: ${{ inputs.version || github.ref_name }}
@@ -28,6 +29,9 @@ jobs:
             os: ubuntu-22.04-arm
             container:
               image: ghcr.io/viam-labs/zed/viam-cpp-base-l4t:0.0.1
+              credentials:
+                username: ${{ github.actor }}
+                password: ${{ secrets.GITHUB_TOKEN }}
             artifact-name: module-linux-arm64
     runs-on: ${{ matrix.os }}
     container: ${{ matrix.container }}
