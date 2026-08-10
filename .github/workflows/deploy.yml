@@ -17,24 +17,8 @@ env:
   MODULE_VERSION: ${{ inputs.version || github.ref_name }}
 
 jobs:
-  build:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - platform: linux/amd64
-            os: ubuntu-22.04
-            artifact-name: module-linux-amd64
-          - platform: linux/arm64
-            os: ubuntu-22.04-arm
-            container:
-              image: ghcr.io/viam-labs/zed/viam-cpp-base-l4t:0.0.1
-              credentials:
-                username: ${{ github.actor }}
-                password: ${{ secrets.GITHUB_TOKEN }}
-            artifact-name: module-linux-arm64
-    runs-on: ${{ matrix.os }}
-    container: ${{ matrix.container }}
+  build-amd64:
+    runs-on: ubuntu-22.04
     steps:
       # actions/checkout@v6.0.2
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
@@ -43,9 +27,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.conan2
-          key: conan-${{ runner.os }}-${{ matrix.platform }}-${{ hashFiles('conanfile.py') }}
+          key: conan-Linux-linux/amd64-${{ hashFiles('conanfile.py') }}
           restore-keys: |
-            conan-${{ runner.os }}-${{ matrix.platform }}-
+            conan-Linux-linux/amd64-
 
       - name: Setup
         run: make setup
@@ -61,11 +45,47 @@ jobs:
       - name: Upload module artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.artifact-name }}
+          name: module-linux-amd64
+          path: module.tar.gz
+
+  build-arm64:
+    runs-on: ubuntu-22.04-arm
+    container:
+      image: ghcr.io/viam-labs/zed/viam-cpp-base-l4t:0.0.1
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      # actions/checkout@v6.0.2
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - name: Cache Conan packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.conan2
+          key: conan-Linux-linux/arm64-${{ hashFiles('conanfile.py') }}
+          restore-keys: |
+            conan-Linux-linux/arm64-
+
+      - name: Setup
+        run: make setup
+
+      - name: Build module.tar.gz
+        run: make module.tar.gz
+
+      - name: Verify build artifact
+        run: |
+          test -f module.tar.gz
+          tar tzf module.tar.gz | sort
+
+      - name: Upload module artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: module-linux-arm64
           path: module.tar.gz
 
   publish:
-    needs: build
+    needs: [build-amd64, build-arm64]
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
