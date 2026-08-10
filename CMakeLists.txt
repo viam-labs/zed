@@ -21,6 +21,17 @@ list(APPEND CMAKE_PREFIX_PATH "/usr/local/zed")
 find_package(ZED REQUIRED)
 find_package(CUDAToolkit REQUIRED)
 
+# Jetson (L4T) hosts libnvbufsurface.so under /usr/lib/aarch64-linux-gnu/tegra
+# which isn't in the default linker search path.
+set(ZED_EXTRA_LIBS "")
+if(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
+    find_library(NVBUFSURFACE_LIB nvbufsurface
+        PATHS /usr/lib/aarch64-linux-gnu/tegra
+        REQUIRED
+    )
+    list(APPEND ZED_EXTRA_LIBS ${NVBUFSURFACE_LIB})
+endif()
+
 add_executable(viam-camera-zed
     src/module/main.cpp
     src/module/zed_camera.cpp
@@ -33,6 +44,8 @@ target_link_libraries(viam-camera-zed
         Threads::Threads
         ${ZED_LIBRARIES}
         CUDA::cudart
+        CUDA::cuda_driver
+        ${ZED_EXTRA_LIBS}
         ${CMAKE_DL_LIBS}
 )
 
