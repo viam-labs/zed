@@ -1,0 +1,39 @@
+# Base image for arm64 (Jetson) module builds.
+# JetPack 6.2 (L4T r36.4.0) userspace + ZED SDK 5.0 for L4T 36.4 pre-installed.
+# Bumping JetPack or ZED SDK requires bumping the image tag in deploy.yml.
+FROM nvcr.io/nvidia/l4t-jetpack:r36.4.0
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        autoconf \
+        automake \
+        build-essential \
+        ca-certificates \
+        cmake \
+        cmake-data \
+        curl \
+        g++ \
+        gdb \
+        git \
+        gnupg \
+        less \
+        libssl-dev \
+        libudev-dev \
+        ninja-build \
+        pkg-config \
+        python3 \
+        python3-pip \
+        python3-venv \
+        software-properties-common \
+        sudo \
+        wget \
+    && rm -rf /var/lib/apt/lists/*
+
+# ZED SDK 5.0 for L4T 36.4. Silent install; skip tools/python (not needed for
+# module builds).
+RUN wget -q -O /tmp/zed.run \
+        https://download.stereolabs.com/zedsdk/5.0/l4t36.4/jetsons \
+    && chmod +x /tmp/zed.run \
+    && /tmp/zed.run -- silent skip_tools skip_python \
+    && rm /tmp/zed.run
