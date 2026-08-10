@@ -8,12 +8,14 @@
     {
       "api": "rdk:component:camera",
       "model": "viam:zed:zed2i",
+      "description": "Camera driver for the Stereolabs ZED 2i stereo depth camera. Streams RGB, depth, and point clouds via the ZED SDK.",
       "markdown_link": "README.md#model-viamzedzed2i",
       "short_description": "Stereolabs ZED 2i driver: RGB, depth, and pointclouds"
     },
     {
       "api": "rdk:service:discovery",
       "model": "viam:zed:discovery",
+      "description": "Discovery service for connected Stereolabs ZED cameras",
       "markdown_link": "README.md#model-viamzeddiscovery",
       "short_description": "Discovery service for connected Stereolabs ZED cameras"
     }
