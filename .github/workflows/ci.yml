@@ -25,8 +25,38 @@ jobs:
           restore-keys: |
             conan-${{ runner.os }}-
 
+      # Restores CUDA + ZED SDK. Skips ~5 min of Setup on cache hit; bin/setup.sh
+      # detects existing installs and short-circuits. Bump -v1 to invalidate.
+      - name: Restore system cache
+        id: system-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: /tmp/system-cache.tgz
+          key: system-cuda12.6-zed5.0-${{ runner.os }}-v1
+
+      - name: Extract system cache
+        if: steps.system-cache.outputs.cache-hit == 'true'
+        run: sudo tar xzf /tmp/system-cache.tgz -C /
+
       - name: Setup
         run: make setup
+
+      - name: Pack system cache
+        if: steps.system-cache.outputs.cache-hit != 'true'
+        run: |
+          sudo tar czf /tmp/system-cache.tgz \
+            /usr/local/cuda-12.6 \
+            /usr/local/zed \
+            /usr/lib/x86_64-linux-gnu/libnvidia-*.so* \
+            /usr/lib/x86_64-linux-gnu/libnvcuvid.so* \
+            /usr/lib/x86_64-linux-gnu/libcuda.so*
+
+      - name: Save system cache
+        if: steps.system-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: /tmp/system-cache.tgz
+          key: system-cuda12.6-zed5.0-${{ runner.os }}-v1
 
       - name: Build module.tar.gz
         run: make module.tar.gz
