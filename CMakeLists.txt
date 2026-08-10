@@ -25,11 +25,13 @@ find_package(CUDAToolkit REQUIRED)
 # which isn't in the default linker search path.
 set(ZED_EXTRA_LIBS "")
 if(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
-    find_library(NVBUFSURFACE_LIB nvbufsurface
-        PATHS /usr/lib/aarch64-linux-gnu/tegra
-        REQUIRED
+    find_library(NVBUFSURFACE_LIB
+        NAMES nvbufsurface nvbuf_utils
+        PATHS /usr/lib/aarch64-linux-gnu/tegra /usr/lib/aarch64-linux-gnu
     )
-    list(APPEND ZED_EXTRA_LIBS ${NVBUFSURFACE_LIB})
+    if(NVBUFSURFACE_LIB)
+        list(APPEND ZED_EXTRA_LIBS ${NVBUFSURFACE_LIB})
+    endif()
 endif()
 
 add_executable(viam-camera-zed

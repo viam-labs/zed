@@ -59,6 +59,19 @@ jobs:
       # actions/checkout@v6.0.2
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
+      - name: Debug — locate NvBufSurface library
+        run: |
+          echo "=== /usr/lib/aarch64-linux-gnu/tegra/ ==="
+          ls -la /usr/lib/aarch64-linux-gnu/tegra/ 2>&1 | head -50 || echo "path missing"
+          echo "=== find any libnvbuf* ==="
+          find /usr -name "libnvbuf*" 2>/dev/null || true
+          echo "=== find libs exporting NvBufSurfaceAllocate ==="
+          for lib in $(find /usr -name "libnvbuf*.so*" -o -name "libnvos*.so*" 2>/dev/null); do
+            if nm -D "$lib" 2>/dev/null | grep -q NvBufSurfaceAllocate; then
+              echo "SYMBOL FOUND in: $lib"
+            fi
+          done
+
       - name: Cache Conan packages
         uses: actions/cache@v4
         with:
