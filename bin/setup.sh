@@ -43,7 +43,12 @@ if [[ ${OS} == "linux" ]]; then
         libudev-dev \
         ninja-build \
         pkg-config \
-        software-properties-common
+        software-properties-common \
+        libusb-1.0-0-dev \
+        libjpeg-turbo8-dev \
+        libturbojpeg0-dev \
+        libpng-dev \
+        libopenblas-dev
 
     ARCH=$(uname -m)
 
