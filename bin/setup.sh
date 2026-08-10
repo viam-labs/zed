@@ -44,6 +44,46 @@ if [[ ${OS} == "linux" ]]; then
         ninja-build \
         pkg-config \
         software-properties-common
+
+    ARCH=$(uname -m)
+
+    # CUDA: Jetson ships it via JetPack. x86_64 hosts (CI runners) install cuda-toolkit-12-6
+    # plus NVIDIA driver user-space libs (libcuda, libnvcuvid, libnvidia-encode) so ZED SDK
+    # can link without a physical GPU.
+    if [[ "${ARCH}" == "x86_64" ]] && ! command -v nvcc >/dev/null 2>&1; then
+        wget -qO /tmp/cuda-keyring.deb \
+            https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb
+        sudo dpkg -i /tmp/cuda-keyring.deb
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends \
+            cuda-toolkit-12-6 \
+            libnvidia-compute-570 \
+            libnvidia-decode-570 \
+            libnvidia-encode-570
+        rm /tmp/cuda-keyring.deb
+    fi
+
+    # ZED SDK 5.0. Pinned to L4T36.4 on Jetson, Ubuntu22 + CUDA 12 on x86_64.
+    if [ ! -d /usr/local/zed ]; then
+        if [[ "${ARCH}" == "aarch64" ]]; then
+            ZED_URL="https://download.stereolabs.com/zedsdk/5.0/l4t36.4/jetsons"
+            ZED_RUN="/tmp/ZED_SDK_Tegra_L4T36.4_v5.0.run"
+        else
+            ZED_URL="https://download.stereolabs.com/zedsdk/5.0/cu12/ubuntu22"
+            ZED_RUN="/tmp/ZED_SDK_Ubuntu22_v5.0.run"
+        fi
+        wget --max-redirect=5 -O "${ZED_RUN}" "${ZED_URL}"
+        # Guard: Stereolabs' web tier sometimes serves the product HTML page when
+        # a version+platform combo is missing. A real installer is ~80MB.
+        if [ "$(stat -c%s "${ZED_RUN}")" -lt 10000000 ]; then
+            echo "ERROR: ZED SDK download too small ($(stat -c%s "${ZED_RUN}") bytes) — likely got HTML" >&2
+            head -c 200 "${ZED_RUN}" >&2
+            exit 1
+        fi
+        chmod +x "${ZED_RUN}"
+        "${ZED_RUN}" -- silent skip_tools skip_python
+        rm "${ZED_RUN}"
+    fi
 elif [[ ${OS} == "darwin" ]]; then
     if ! command -v brew >/dev/null 2>&1; then
         echo "Homebrew not found. Please install it first: https://brew.sh/"

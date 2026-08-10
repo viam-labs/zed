@@ -1,5 +1,6 @@
 #include <iostream>
 #include <memory>
+#include <sl/Camera.hpp>
 #include <string>
 #include <utility>
 #include <vector>
@@ -14,6 +15,7 @@ namespace vsdk = ::viam::sdk;
 int serve(int argc, char** argv) try {
   vsdk::Instance inst;
 
+  VIAM_SDK_LOG(info) << "[serve] ZED SDK version: " << sl::Camera::getSDKVersion();
   VIAM_SDK_LOG(info) << "[serve] Starting ZED module";
 
   std::vector<std::shared_ptr<vsdk::ModelRegistration>> registrations;
