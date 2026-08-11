@@ -1,5 +1,7 @@
 #pragma once
 
+#include <mutex>
+#include <sl/Camera.hpp>
 #include <string>
 #include <vector>
 #include <viam/sdk/components/camera.hpp>
@@ -13,6 +15,7 @@ class Zed2i final : public viam::sdk::Camera {
   static std::vector<std::string> validate(viam::sdk::ResourceConfig cfg);
 
   Zed2i(viam::sdk::Dependencies deps, viam::sdk::ResourceConfig cfg);
+  ~Zed2i() override;
 
   viam::sdk::Camera::image_collection get_images(std::vector<std::string> filter_source_names,
                                                  const viam::sdk::ProtoStruct& extra) override;
@@ -23,6 +26,16 @@ class Zed2i final : public viam::sdk::Camera {
   std::vector<viam::sdk::GeometryConfig> get_geometries(
       const viam::sdk::ProtoStruct& extra) override;
   viam::sdk::ProtoStruct do_command(const viam::sdk::ProtoStruct& command) override;
+
+ private:
+  struct Config {
+    std::string serial_number;
+  };
+
+  static Config parse_config(const viam::sdk::ResourceConfig& cfg);
+
+  sl::Camera camera_;
+  std::mutex grab_mu_;
 };
 
 }  // namespace zed
