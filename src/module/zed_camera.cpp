@@ -282,7 +282,31 @@ viam::sdk::Camera::point_cloud Zed2i::encode_zed_cloud_to_pcd(const sl::Mat& clo
 }
 
 viam::sdk::Camera::properties Zed2i::get_properties() {
-  throw std::runtime_error("get_properties not implemented");
+  std::lock_guard<std::mutex> lock(grab_mu_);
+
+  const auto info = camera_.getCameraInformation();
+  const auto& cal = info.camera_configuration.calibration_parameters.left_cam;
+
+  viam::sdk::Camera::properties out;
+  out.supports_pcd = true;
+  out.intrinsic_parameters.width_px = static_cast<int>(cal.image_size.width);
+  out.intrinsic_parameters.height_px = static_cast<int>(cal.image_size.height);
+  out.intrinsic_parameters.focal_x_px = cal.fx;
+  out.intrinsic_parameters.focal_y_px = cal.fy;
+  out.intrinsic_parameters.center_x_px = cal.cx;
+  out.intrinsic_parameters.center_y_px = cal.cy;
+
+  // ZED reports rectified intrinsics (matches retrieveImage's rectified output),
+  // so disto is zero in practice. Reorder ZED [k1,k2,p1,p2,k3] -> RDK [k1,k2,k3,p1,p2]
+  // in case raw calibration is ever plumbed through here.
+  out.distortion_parameters.model = "brown_conrady";
+  out.distortion_parameters.parameters = {
+      cal.disto[0], cal.disto[1], cal.disto[4], cal.disto[2], cal.disto[3],
+  };
+
+  VIAM_RESOURCE_LOG(info) << "properties: " << cal.image_size.width << "x" << cal.image_size.height
+                          << " fx=" << cal.fx << " fy=" << cal.fy;
+  return out;
 }
 
 viam::sdk::ProtoStruct Zed2i::get_status() {
