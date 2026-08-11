@@ -62,12 +62,48 @@ std::vector<std::string> Zed2i::validate(viam::sdk::ResourceConfig /*cfg*/) { re
 Zed2i::Config Zed2i::parse_config(const viam::sdk::ResourceConfig& cfg) {
   Config out;
   const auto& attrs = cfg.attributes();
+
   auto it = attrs.find("serial_number");
   if (it != attrs.end()) {
     if (const auto* s = it->second.get<std::string>()) {
       out.serial_number = *s;
     }
   }
+
+  auto depth_it = attrs.find("depth_mode");
+  if (depth_it != attrs.end()) {
+    if (const auto* s = depth_it->second.get<std::string>()) {
+      if (*s == "performance") {
+        out.depth_mode = sl::DEPTH_MODE::PERFORMANCE;
+      } else if (*s == "quality") {
+        out.depth_mode = sl::DEPTH_MODE::QUALITY;
+      } else if (*s == "neural") {
+        out.depth_mode = sl::DEPTH_MODE::NEURAL;
+      } else if (*s == "ultra") {
+        out.depth_mode = sl::DEPTH_MODE::ULTRA;
+      } else {
+        throw std::invalid_argument(
+            "depth_mode must be one of: performance, quality, neural, ultra (got: " + *s + ")");
+      }
+    }
+  }
+
+  auto res_it = attrs.find("resolution");
+  if (res_it != attrs.end()) {
+    if (const auto* s = res_it->second.get<std::string>()) {
+      if (*s == "hd720") {
+        out.resolution = sl::RESOLUTION::HD720;
+      } else if (*s == "hd1080") {
+        out.resolution = sl::RESOLUTION::HD1080;
+      } else if (*s == "hd2k") {
+        out.resolution = sl::RESOLUTION::HD2K;
+      } else {
+        throw std::invalid_argument("resolution must be one of: hd720, hd1080, hd2k (got: " + *s +
+                                    ")");
+      }
+    }
+  }
+
   return out;
 }
 
@@ -76,9 +112,9 @@ Zed2i::Zed2i(viam::sdk::Dependencies /*deps*/, viam::sdk::ResourceConfig cfg)
   const Config config = parse_config(cfg);
 
   sl::InitParameters params;
-  params.camera_resolution = sl::RESOLUTION::HD720;
+  params.camera_resolution = config.resolution;
   params.camera_fps = 30;
-  params.depth_mode = sl::DEPTH_MODE::PERFORMANCE;
+  params.depth_mode = config.depth_mode;
 
   if (!config.serial_number.empty()) {
     unsigned int sn = 0;
@@ -99,7 +135,8 @@ Zed2i::Zed2i(viam::sdk::Dependencies /*deps*/, viam::sdk::ResourceConfig cfg)
     throw std::runtime_error(msg);
   }
   VIAM_RESOURCE_LOG(info) << "opened S/N " << camera_.getCameraInformation().serial_number
-                          << " at HD720@30 PERFORMANCE";
+                          << " resolution=" << sl::toString(config.resolution).c_str()
+                          << " depth_mode=" << sl::toString(config.depth_mode).c_str();
 }
 
 Zed2i::~Zed2i() {
