@@ -18,8 +18,14 @@ find_package(Threads REQUIRED)
 find_package(viam-cpp-sdk REQUIRED)
 
 list(APPEND CMAKE_PREFIX_PATH "/usr/local/zed")
-find_package(ZED REQUIRED)
+# ZED's zed-config.cmake uses the legacy FindCUDA module which needs this set
+# explicitly; modern CUDAToolkit doesn't populate it.
+if(NOT DEFINED CUDA_TOOLKIT_ROOT_DIR)
+    set(CUDA_TOOLKIT_ROOT_DIR "/usr/local/cuda")
+endif()
 find_package(CUDAToolkit REQUIRED)
+find_package(ZED REQUIRED)
+find_library(TURBOJPEG_LIB turbojpeg REQUIRED)
 
 set(ZED_EXTRA_LINK_OPTIONS "")
 if(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
@@ -45,6 +51,7 @@ target_link_libraries(viam-camera-zed
         ${ZED_LIBRARIES}
         CUDA::cudart
         CUDA::cuda_driver
+        ${TURBOJPEG_LIB}
         ${CMAKE_DL_LIBS}
 )
 

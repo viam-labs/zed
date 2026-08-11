@@ -45,10 +45,10 @@ if [[ ${OS} == "linux" ]]; then
         pkg-config \
         software-properties-common \
         libusb-1.0-0-dev \
-        libjpeg-turbo8-dev \
         libturbojpeg0-dev \
         libpng-dev \
-        libopenblas-dev
+        libopenblas-dev \
+        zstd
 
     ARCH=$(uname -m)
 
@@ -127,12 +127,13 @@ else
 fi
 
 
-# Set up conan
+# Set up conan (and cmake — pip's cmake avoids Debian apt's 3.18, but pin <4 because
+# CMake 4.x removed the FindCUDA module that ZED SDK's zed-config.cmake still uses).
 if [ ! -f "./venv/bin/conan" ]; then
   echo 'installing conan'
   . ./venv/bin/activate
   pip install --upgrade pip
-  pip install conan
+  pip install conan 'cmake>=3.25,<4'
 fi
 
 conan profile detect || echo "Conan is already installed"
