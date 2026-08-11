@@ -30,6 +30,8 @@ class Zed2i final : public viam::sdk::Camera {
  private:
   struct Config {
     std::string serial_number;
+    sl::DEPTH_MODE depth_mode = sl::DEPTH_MODE::PERFORMANCE;
+    sl::RESOLUTION resolution = sl::RESOLUTION::HD720;
   };
 
   static Config parse_config(const viam::sdk::ResourceConfig& cfg);
