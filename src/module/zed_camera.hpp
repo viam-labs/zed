@@ -34,6 +34,7 @@ class Zed2i final : public viam::sdk::Camera {
 
   static Config parse_config(const viam::sdk::ResourceConfig& cfg);
   static viam::sdk::Camera::raw_image convert_zed_depth_to_viam(const sl::Mat& depth_mat);
+  static viam::sdk::Camera::point_cloud encode_zed_cloud_to_pcd(const sl::Mat& cloud);
 
   sl::Camera camera_;
   std::mutex grab_mu_;

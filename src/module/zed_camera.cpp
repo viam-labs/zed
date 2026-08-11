@@ -6,8 +6,10 @@
 #include <chrono>
 #include <cmath>
 #include <cstring>
+#include <sstream>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 
 namespace zed {
 
@@ -17,6 +19,17 @@ constexpr char kColorSourceName[] = "color";
 constexpr char kDepthSourceName[] = "depth";
 constexpr char kColorMimeType[] = "image/jpeg";
 constexpr char kDepthMimeTypeViamDep[] = "image/vnd.viam.dep";
+constexpr char kPcdMimeType[] = "pointcloud/pcd";
+
+struct PointXYZRGB {
+  float x;
+  float y;
+  float z;
+  uint32_t rgb;
+};
+static_assert(std::is_trivially_copyable_v<PointXYZRGB>);
+static_assert(std::is_standard_layout_v<PointXYZRGB>);
+static_assert(sizeof(PointXYZRGB) == 16);
 
 std::vector<unsigned char> encode_bgra_as_jpeg(const unsigned char* bgra, int width, int height,
                                                int stride, int quality) {
@@ -198,7 +211,74 @@ viam::sdk::Camera::raw_image Zed2i::convert_zed_depth_to_viam(const sl::Mat& dep
 
 viam::sdk::Camera::point_cloud Zed2i::get_point_cloud(std::string /*mime_type*/,
                                                       const viam::sdk::ProtoStruct& /*extra*/) {
-  throw std::runtime_error("get_point_cloud not implemented");
+  std::lock_guard<std::mutex> lock(grab_mu_);
+
+  sl::RuntimeParameters runtime;
+  const auto grab_err = camera_.grab(runtime);
+  if (grab_err != sl::ERROR_CODE::SUCCESS) {
+    const std::string msg =
+        "sl::Camera::grab failed: " + std::string(sl::toString(grab_err).c_str());
+    VIAM_RESOURCE_LOG(error) << msg;
+    throw std::runtime_error(msg);
+  }
+
+  sl::Mat cloud;
+  const auto cloud_err = camera_.retrieveMeasure(cloud, sl::MEASURE::XYZRGBA, sl::MEM::CPU);
+  if (cloud_err != sl::ERROR_CODE::SUCCESS) {
+    const std::string msg =
+        "sl::Camera::retrieveMeasure failed: " + std::string(sl::toString(cloud_err).c_str());
+    VIAM_RESOURCE_LOG(error) << msg;
+    throw std::runtime_error(msg);
+  }
+
+  return encode_zed_cloud_to_pcd(cloud);
+}
+
+viam::sdk::Camera::point_cloud Zed2i::encode_zed_cloud_to_pcd(const sl::Mat& cloud) {
+  const size_t width = cloud.getWidth();
+  const size_t height = cloud.getHeight();
+  const size_t pixels_per_row = cloud.getStepBytes(sl::MEM::CPU) / sizeof(sl::float4);
+  const auto* data = cloud.getPtr<sl::float4>(sl::MEM::CPU);
+
+  std::vector<PointXYZRGB> points;
+  points.reserve(width * height);
+  for (size_t y = 0; y < height; ++y) {
+    for (size_t x = 0; x < width; ++x) {
+      const auto& p = data[y * pixels_per_row + x];
+      if (!std::isfinite(p.x) || !std::isfinite(p.y) || !std::isfinite(p.z)) {
+        continue;
+      }
+      uint32_t bgra_packed;
+      std::memcpy(&bgra_packed, &p.w, sizeof(uint32_t));
+      PointXYZRGB pt;
+      pt.x = p.x / 1000.0f;
+      pt.y = p.y / 1000.0f;
+      pt.z = p.z / 1000.0f;
+      pt.rgb = bgra_packed & 0x00FFFFFFu;
+      points.push_back(pt);
+    }
+  }
+
+  std::stringstream header;
+  header << "VERSION .7\n"
+         << "FIELDS x y z rgb\n"
+         << "SIZE 4 4 4 4\n"
+         << "TYPE F F F U\n"
+         << "COUNT 1 1 1 1\n"
+         << "WIDTH " << points.size() << "\n"
+         << "HEIGHT 1\n"
+         << "VIEWPOINT 0 0 0 1 0 0 0\n"
+         << "POINTS " << points.size() << "\n"
+         << "DATA binary\n";
+  const std::string header_str = header.str();
+
+  std::vector<unsigned char> bytes;
+  bytes.reserve(header_str.size() + points.size() * sizeof(PointXYZRGB));
+  bytes.insert(bytes.end(), header_str.begin(), header_str.end());
+  const auto* raw = reinterpret_cast<const unsigned char*>(points.data());
+  bytes.insert(bytes.end(), raw, raw + points.size() * sizeof(PointXYZRGB));
+
+  return viam::sdk::Camera::point_cloud{kPcdMimeType, std::move(bytes)};
 }
 
 viam::sdk::Camera::properties Zed2i::get_properties() {
