@@ -9,6 +9,7 @@
 #include <viam/sdk/module/service.hpp>
 
 #include "zed_camera.hpp"
+#include "zed_x.hpp"
 
 namespace vsdk = ::viam::sdk;
 
@@ -26,6 +27,13 @@ int serve(int argc, char** argv) try {
         return std::make_unique<zed::Zed2i>(std::move(deps), std::move(cfg));
       },
       &zed::Zed2i::validate));
+
+  registrations.push_back(std::make_shared<vsdk::ModelRegistration>(
+      vsdk::API::get<vsdk::Camera>(), zed::ZedX::model,
+      [](vsdk::Dependencies deps, vsdk::ResourceConfig cfg) {
+        return std::make_unique<zed::ZedX>(std::move(deps), std::move(cfg));
+      },
+      &zed::ZedX::validate));
 
   auto module_service = std::make_shared<vsdk::ModuleService>(argc, argv, std::move(registrations));
   module_service->serve();

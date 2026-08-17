@@ -40,6 +40,7 @@ endif()
 add_executable(viam-camera-zed
     src/module/main.cpp
     src/module/zed_camera.cpp
+    src/module/zed_x.cpp
 )
 target_compile_features(viam-camera-zed PRIVATE cxx_std_17)
 target_include_directories(viam-camera-zed PRIVATE ${ZED_INCLUDE_DIRS})
