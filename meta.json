@@ -13,6 +13,13 @@
       "short_description": "Stereolabs ZED 2i driver: RGB, depth, and pointclouds"
     },
     {
+      "api": "rdk:component:camera",
+      "model": "viam:zed:zedx",
+      "description": "Camera driver for the Stereolabs ZED X GMSL2 stereo depth camera. Requires a ZED Link (or compatible) capture card on the Jetson. Streams RGB, depth, and point clouds via the ZED SDK.",
+      "markdown_link": "README.md#model-viamzedzedx",
+      "short_description": "Stereolabs ZED X driver: RGB, depth, and pointclouds"
+    },
+    {
       "api": "rdk:service:discovery",
       "model": "viam:zed:discovery",
       "description": "Discovery service for connected Stereolabs ZED cameras",
