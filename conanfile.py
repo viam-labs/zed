@@ -31,13 +31,13 @@ class ViamZed(ConanFile):
         check_min_cppstd(self, 17)
 
     def requirements(self):
-        self.requires("viam-cpp-sdk/0.39.0")
+        self.requires("viam-cpp-sdk/0.41.0")
         # Pin transitive deps to versions with prebuilt binaries (avoid slow source builds).
-        self.requires("grpc/1.72.0", override=True)
+        self.requires("grpc/1.83.1", override=True)
         self.requires("protobuf/5.27.0", override=True)
         self.requires("abseil/20250127.0", override=True)
-        self.requires("re2/20230301", override=True)
-        self.requires("openssl/3.6.0", override=True)
+        self.requires("re2/20251105", override=True)
+        self.requires("openssl/3.6.1", override=True)
         self.requires("zlib/1.3.1", override=True)
         self.requires("xtensor/[>=0.24.3 <0.27.0]", override=True)
 
