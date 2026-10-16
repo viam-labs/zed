@@ -36,7 +36,8 @@ conan-pkg:
 	test -f ./venv/bin/activate && . ./venv/bin/activate; \
 	conan create . \
 	$(CONAN_FLAGS) \
-	--build=missing
+	--build="*" \
+	--build="~cmake/*"
 
 module.tar.gz: conan-pkg meta.json
 	test -f ./venv/bin/activate && . ./venv/bin/activate; \
